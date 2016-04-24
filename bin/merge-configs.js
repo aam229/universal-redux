@@ -13,6 +13,7 @@ const baseToolsConfig = require('../config/webpack-isomorphic-tools.config.js');
 const WebpackErrorNotificationPlugin = require('webpack-error-notification');
 
 const isProduction = process.env.NODE_ENV === 'production';
+const hooks = require('../lib/hooks');
 
 function inspect(obj) {
   const utilOptions = {
@@ -25,7 +26,7 @@ function inspect(obj) {
 
 module.exports = (userConfig) => {
   // derive root and sourceDir, alowing for absolute, relative, or not provided
-  const root = userConfig.root ? userConfig.root[0] === '/' ? userConfig.root : path.resolve(__dirname, '../..', userConfig.root) : path.resolve(__dirname, '../../..');
+  const root = userConfig.root ? userConfig.root[0] === '/' ? userConfig.root : path.resolve(process.cwd(), userConfig.root) : path.resolve(process.cwd());
   const sourceDir = userConfig.sourceDir ? userConfig.sourceDir[0] === '/' ? userConfig.sourceDir : path.resolve(root, userConfig.sourceDir) : path.resolve(root, './src');
 
   // merge with base config
@@ -36,6 +37,9 @@ module.exports = (userConfig) => {
   const combinedWebpackConfig = mergeWebpack(baseConfig, universalReduxConfig.webpack.config);
   combinedWebpackConfig.context = root;
   combinedWebpackConfig.resolve.root = sourceDir;
+
+  combinedWebpackConfig.resolve.fallback = [path.join(__dirname, '../node_modules')];
+  combinedWebpackConfig.resolveLoader.root = path.join(__dirname, '../node_modules');
 
   // derive webpack output destination from staticPath
   combinedWebpackConfig.output.path = universalReduxConfig.server.staticPath + '/dist';
@@ -74,8 +78,6 @@ module.exports = (userConfig) => {
 
   // add default settings that are used by server via process.env
   const definitions = {
-    __LOGGER__: false,
-    __DEVTOOLS__: !isProduction,
     __DEVELOPMENT__: !isProduction
   };
 
@@ -91,24 +93,37 @@ module.exports = (userConfig) => {
   } else {
     combinedWebpackConfig.resolve.alias.middleware = path.resolve(__dirname, '../lib/helpers/empty.js');
   }
+
   // Try to resolve the configured plugins
+  const isServer = typeof(__SERVER__) !== 'undefined' && __SERVER__;
   const plugins = universalReduxConfig.plugins
-    .map((plugin) => {
+    .map((pluginKey) => {
       const pluginPath = [
-        `${sourceDir}/${plugin}`,
-        `universal-redux-plugin-${plugin}`,
-        `${plugin}`
+        `universal-redux-plugin-${pluginKey}`,
+        `${sourceDir}/${pluginKey}`
       ].find((pp) => {
         try {
-          require(pp);
+          require.resolve(pp);
           return true;
         } catch (e) {
-          if(e.code === 'MODULE_NOT_FOUND') return false;
+          if (e.code === 'MODULE_NOT_FOUND') return false;
           throw e;
         }
       });
       if (!pluginPath) {
-        console.warn(`Could not resolve plugin ${plugin}`);
+        console.warn(`Could not resolve plugin ${pluginKey}`);
+      } else {
+        // Check that we even need the plugin in the current environment;
+        const plugin = require(pluginPath);
+        if (plugin.config && plugin.config.environments) {
+          if ((plugin.config.environments.indexOf(hooks.environments.SERVER) !== -1 && !isServer) ||
+              (plugin.config.environments.indexOf(hooks.environments.CLIENT) !== -1 && isServer) ||
+              (plugin.config.environments.indexOf(hooks.environments.PRODUCTION) !== -1 && !isProduction) ||
+              (plugin.config.environments.indexOf(hooks.environments.DEVELOPMENT) !== -1 && isProduction)) {
+            return null;
+          }
+        }
+        console.log(`Loaded universal-redux plugin '${pluginPath}'`);
       }
       return pluginPath;
     })

@@ -12,21 +12,27 @@ module.exports = (userBabelConfig, verbose) => {
   const babelConfig = userBabelConfig ? Object.assign(baseBabelConfig, loadAndParse(path.resolve(userBabelConfig))) : baseBabelConfig;
 
   const hmrConfig = [
-    'react-transform', {
+    require.resolve('babel-plugin-react-transform'), {
       transforms: [
         {
-          transform: 'react-transform-hmr',
-          imports: [ 'react' ],
-          locals: [ 'module' ]
+          transform: require.resolve('react-transform-hmr'),
+          imports: [ require.resolve(path.join(process.cwd(), 'node_modules', 'react')) ],
+          locals: [ require.resolve('module') ]
         },
         {
-          transform: 'react-transform-catch-errors',
-          imports: [ 'react', 'redbox-react' ]
+          transform: require.resolve('react-transform-catch-errors'),
+          imports: [ require.resolve(path.join(process.cwd(), 'node_modules', 'react')), require.resolve('redbox-react') ]
         }
       ]
     }
   ];
-
+  babelConfig.plugins = babelConfig.plugins.map((pluginConfig) => {
+    pluginConfig[0] = require.resolve("babel-plugin-" + pluginConfig[0]);
+    return pluginConfig;
+  });
+  babelConfig.presets = babelConfig.presets.map((preset) => {
+    return require.resolve("babel-preset-" + preset);
+  });
   babelConfig.env.development.plugins.unshift(hmrConfig);
   babelConfig.cacheDirectory = true;
 

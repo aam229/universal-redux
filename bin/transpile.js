@@ -9,6 +9,14 @@ var config;
 
 try {
   config = JSON.parse(babelrc);
+  config.plugins = config.plugins.map((pluginConfig) => {
+    pluginConfig[0] = require.resolve("babel-plugin-" + pluginConfig[0]);
+    return pluginConfig;
+  });
+  config.presets = config.presets.map((preset) => {
+    return require.resolve("babel-preset-" + preset);
+  });
+
 } catch (err) {
   console.error('==>     ERROR: Error parsing your babelrc');
   console.error(err);
