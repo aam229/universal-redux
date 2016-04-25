@@ -27,7 +27,8 @@ function createRootComponent({ store, renderProps }) {
       </div>
     </Provider>
   );
-  return { root };
+
+  return Promise.resolve({ root });
 }
 
 function renderRootComponent({ config, assets, store, headers, root }) {
@@ -47,7 +48,7 @@ function renderer({ history, routes, store, assets, location, headers, config })
       } else if (!renderProps) {
         reject({ status: 400 });
       } else {
-        execute(hooks.CREATE_ROOT_COMPONENT, { store, renderProps }, createRootComponent)
+        execute(hooks.CREATE_ROOT_COMPONENT, { config, assets, store, headers, renderProps }, createRootComponent)
           .then(({ root }) => execute(hooks.RENDER_ROOT_COMPONENT, { config, assets, store, headers, root }, renderRootComponent))
           .then(resolve, reject);
       }

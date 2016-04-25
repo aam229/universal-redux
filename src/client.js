@@ -30,7 +30,7 @@ function generateRootComponent({ additionalComponents }) {
       </div>
     </Provider>
   );
-  return { root };
+  return Promise.resolve({ root });
 }
 
 // There is probably no need to be asynchronous here

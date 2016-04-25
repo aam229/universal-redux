@@ -116,10 +116,11 @@ module.exports = (userConfig) => {
         // Check that we even need the plugin in the current environment;
         const plugin = require(pluginPath);
         if (plugin.config && plugin.config.environments) {
-          if ((plugin.config.environments.indexOf(hooks.environments.SERVER) !== -1 && !isServer) ||
-              (plugin.config.environments.indexOf(hooks.environments.CLIENT) !== -1 && isServer) ||
-              (plugin.config.environments.indexOf(hooks.environments.PRODUCTION) !== -1 && !isProduction) ||
-              (plugin.config.environments.indexOf(hooks.environments.DEVELOPMENT) !== -1 && isProduction)) {
+          if ((plugin.config.environments.indexOf(hooks.environments.SERVER) === -1 && isServer) ||
+              (plugin.config.environments.indexOf(hooks.environments.CLIENT) === -1 && !isServer) ||
+              (plugin.config.environments.indexOf(hooks.environments.PRODUCTION) === -1 && isProduction) ||
+              (plugin.config.environments.indexOf(hooks.environments.DEVELOPMENT) === -1 && !isProduction)) {
+            console.log(`Not loading universal-redux plugin '${pluginPath}'`);
             return null;
           }
         }
@@ -129,7 +130,7 @@ module.exports = (userConfig) => {
     })
     .filter((pp) => !!pp);
 
-  combinedWebpackConfig.entry.main.unshift(...plugins);
+  combinedWebpackConfig.entry.main.unshift.apply(combinedWebpackConfig.entry.main, plugins);
 
   // add project level vendor libs
   if (universalReduxConfig.webpack.vendorLibraries && isProduction) {
