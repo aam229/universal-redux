@@ -19,11 +19,12 @@ global.__SERVER__ = true;
 global.__DISABLE_SSR__ = false;  // <----- DISABLES SERVER SIDE RENDERING FOR ERROR DEBUGGING
 global.__DEVELOPMENT__ = process.env.NODE_ENV !== 'production';
 
-function createRootComponent({ store, renderProps }) {
+function createRootComponent({ store, renderProps, additionalComponents }) {
   const root = (
     <Provider store={store} key="provider">
       <div>
         <RouterContext {...renderProps} />
+        {additionalComponents}
       </div>
     </Provider>
   );
@@ -48,7 +49,7 @@ function renderer({ history, routes, store, assets, location, headers, config })
       } else if (!renderProps) {
         reject({ status: 400 });
       } else {
-        execute(hooks.CREATE_ROOT_COMPONENT, { config, assets, store, headers, renderProps }, createRootComponent)
+        execute(hooks.CREATE_ROOT_COMPONENT, { config, assets, store, headers, renderProps, additionalComponents: [] }, createRootComponent)
           .then(({ root }) => execute(hooks.RENDER_ROOT_COMPONENT, { config, assets, store, headers, root }, renderRootComponent))
           .then(resolve, reject);
       }
