@@ -24,6 +24,69 @@ function inspect(obj) {
   console.log(util.inspect(obj, utilOptions));
 }
 
+function findPluginConfig(plugin, sourceDir){
+  const pluginPath = [
+    `universal-redux-plugin-${plugin}`,
+    `${sourceDir}/${plugin}`
+  ].find((pp) => {
+    try {
+      require.resolve(pp);
+      return true;
+    } catch (e) {
+      if (e.code !== 'MODULE_NOT_FOUND') console.error(e);
+      return false;
+    }
+  });
+  if(!pluginPath) {
+    return null;
+  }
+  const pluginConfigPath = [
+    `${pluginPath}/config`,
+    `${pluginPath}.config`
+  ].find((pp) => {
+    try {
+      require.resolve(pp);
+      return true;
+    } catch (e) {
+      if (e.code !== 'MODULE_NOT_FOUND') console.error(e);
+      return false;
+    }
+  });
+  const config = pluginConfigPath ? require(pluginConfigPath) : {};
+  return {
+    path: pluginPath,
+    environments: config.environments
+  };
+}
+
+function parsePlugins(universalReduxConfig, sourceDir, isProduction, isServer){
+  return universalReduxConfig.plugins
+    .map((pluginKey) => {
+      const pluginConfig = findPluginConfig(pluginKey, sourceDir);
+      if (!pluginConfig) {
+        console.warn(`Could not resolve plugin ${pluginKey}`);
+        return null;
+      } else {
+        // Check that we even need the plugin in the current environment;
+        if (pluginConfig.environments) {
+          if ((pluginConfig.environments.indexOf(hooks.environments.SERVER) === -1 && isServer) ||
+            (pluginConfig.environments.indexOf(hooks.environments.CLIENT) === -1 && !isServer) ||
+            (pluginConfig.environments.indexOf(hooks.environments.PRODUCTION) === -1 && isProduction) ||
+            (pluginConfig.environments.indexOf(hooks.environments.DEVELOPMENT) === -1 && !isProduction)) {
+            console.log(`Not loading universal-redux plugin '${pluginConfig.path}'`);
+            return null;
+          }
+        }
+        if(isServer){
+          require(pluginConfig.path);
+        }
+        console.log(`Loaded universal-redux plugin '${pluginConfig.path}'`);
+      }
+      return pluginConfig.path;
+    })
+    .filter((pp) => !!pp);
+}
+
 module.exports = (userConfig) => {
   // derive root and sourceDir, alowing for absolute, relative, or not provided
   const root = userConfig.root ? userConfig.root[0] === '/' ? userConfig.root : path.resolve(process.cwd(), userConfig.root) : path.resolve(process.cwd());
@@ -96,41 +159,7 @@ module.exports = (userConfig) => {
 
   // Try to resolve the configured plugins
   const isServer = typeof(__SERVER__) !== 'undefined' && __SERVER__;
-  const plugins = universalReduxConfig.plugins
-    .map((pluginKey) => {
-      const pluginPath = [
-        `universal-redux-plugin-${pluginKey}`,
-        `${sourceDir}/${pluginKey}`
-      ].find((pp) => {
-        try {
-          require.resolve(pp);
-          return true;
-        } catch (e) {
-          if (e.code === 'MODULE_NOT_FOUND') return false;
-          throw e;
-        }
-      });
-      if (!pluginPath) {
-        console.warn(`Could not resolve plugin ${pluginKey}`);
-      } else {
-        // Check that we even need the plugin in the current environment;
-        const plugin = require(pluginPath);
-        if (plugin.config && plugin.config.environments) {
-          if ((plugin.config.environments.indexOf(hooks.environments.SERVER) === -1 && isServer) ||
-              (plugin.config.environments.indexOf(hooks.environments.CLIENT) === -1 && !isServer) ||
-              (plugin.config.environments.indexOf(hooks.environments.PRODUCTION) === -1 && isProduction) ||
-              (plugin.config.environments.indexOf(hooks.environments.DEVELOPMENT) === -1 && !isProduction)) {
-            console.log(`Not loading universal-redux plugin '${pluginPath}'`);
-            return null;
-          }
-        }
-        console.log(`Loaded universal-redux plugin '${pluginPath}'`);
-      }
-      return pluginPath;
-    })
-    .filter((pp) => !!pp);
-
-  combinedWebpackConfig.entry.main.unshift.apply(combinedWebpackConfig.entry.main, plugins);
+  combinedWebpackConfig.entry.main.unshift.apply(combinedWebpackConfig.entry.main, parsePlugins(universalReduxConfig, sourceDir, isProduction, isServer ));
 
   // add project level vendor libs
   if (universalReduxConfig.webpack.vendorLibraries && isProduction) {

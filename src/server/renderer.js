@@ -39,7 +39,7 @@ function renderRootComponent({ config, assets, store, headers, root }) {
   };
 }
 
-function renderer({ history, routes, store, assets, location, headers, config }) {
+function renderer({ history, routes, store, assets, location, headers, cookies, config }) {
   return new Promise((resolve, reject) => {
     match({ history, routes, location }, (error, redirectLocation, renderProps) => {
       if (error) {
@@ -49,8 +49,8 @@ function renderer({ history, routes, store, assets, location, headers, config })
       } else if (!renderProps) {
         reject({ status: 400 });
       } else {
-        execute(hooks.CREATE_ROOT_COMPONENT, { config, assets, store, headers, renderProps, additionalComponents: [] }, createRootComponent)
-          .then(({ root }) => execute(hooks.RENDER_ROOT_COMPONENT, { config, assets, store, headers, root }, renderRootComponent))
+        execute(hooks.CREATE_ROOT_COMPONENT, { config, assets, store, headers, cookies, renderProps, additionalComponents: [] }, createRootComponent)
+          .then(({ root }) => execute(hooks.RENDER_ROOT_COMPONENT, { config, assets, store, headers, cookies, root }, renderRootComponent))
           .then(resolve, reject);
       }
     });
@@ -73,7 +73,7 @@ export default (config) => {
   const history = createMemoryHistory();
   const store = createStore(middleware, history);
 
-  return ({ location, headers }) => {
+  return ({ location, headers, cookies }) => {
     if (__DEVELOPMENT__) {
       // Do not cache webpack stats: the script file would change since
       // hot module replacement is enabled in the development env
@@ -81,6 +81,6 @@ export default (config) => {
     }
     const assets = tools.assets();
     const routes = getRoutes(store);
-    return renderer({ history, routes, store, assets, location, headers, config });
+    return renderer({ history, routes, store, assets, location, headers, cookies, config });
   };
 };
