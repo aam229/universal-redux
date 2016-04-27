@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
-import { browserHistory as history, Router } from 'react-router';
+import { browserHistory, Router, match } from 'react-router';
 
 import createStore from './shared/create';
 
@@ -13,29 +13,31 @@ import { hooks, execute } from './hooks';
 
 const dest = document.getElementById('content');
 
-const store = createStore(middleware, history, window.__data);
+const { store, history } = createStore(middleware, browserHistory, window.__data);
 const routes = getRoutes(store);
 
-function generateRootComponent({ clientComponents, includeClientComponents, render }) {
-  const component = (
-    <Router history={history} render={render}>
-      {routes}
-    </Router>
-  );
+function generateRootComponent({ clientComponents, includeClientComponents, render, renderProps }) {
   const root = (
     <Provider store={store} key="provider">
       <div>
-        {component}
+        <Router {...renderProps} history={history} render={render} />
         { includeClientComponents ? clientComponents : null}
       </div>
     </Provider>
   );
-  return Promise.resolve({ root, clientComponents });
+  return Promise.resolve({ root, clientComponents, renderProps });
 }
 
 // There is probably no need to be asynchronous here
-execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, clientComponents: [], includeClientComponents: false }, generateRootComponent)
-  .then(({ root, clientComponents }) => {
+new Promise((resolve, reject) => {
+    const location = window.location.pathname + window.location.search + window.location.hash;
+    match({ routes, store, history, location }, (error, redirectLocation, renderProps) => {
+      if(error) reject(error);
+      else resolve({ renderProps });
+    })
+  })
+  .then(({renderProps}) => execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientComponents: [], includeClientComponents: false}, generateRootComponent))
+  .then(({ root, clientComponents, renderProps }) => {
     ReactDOM.render(root, dest);
 
     if (process.env.NODE_ENV !== 'production') {
@@ -44,12 +46,12 @@ execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, clientComponents:
         console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
       }
     }
-    
+
     if (clientComponents.length === 0) {
       return;
     }
     // Rerender the root component with the dev component (redux sidebar)
-    return execute(hooks.CREATE_ROOT_COMPONENT, {store, routes, history, clientComponents: [], includeClientComponents: true}, generateRootComponent)
+    return execute(hooks.CREATE_ROOT_COMPONENT, {store, routes, history, renderProps, clientComponents: [], includeClientComponents: true}, generateRootComponent)
       .then(({ root }) => {
         ReactDOM.render(root, dest);
       });
