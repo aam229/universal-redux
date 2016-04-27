@@ -44,6 +44,7 @@ execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, clientComponents:
         console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
       }
     }
+    
     if (clientComponents.length === 0) {
       return;
     }

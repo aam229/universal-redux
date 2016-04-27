@@ -70,8 +70,6 @@ export default (config) => {
   const getRoutes = require(path.resolve(config.routes)).default;
 
   const middleware = config.redux.middleware ? require(path.resolve(config.redux.middleware)).default : [];
-  const history = createMemoryHistory();
-  const store = createStore(middleware, history);
 
   return ({ location, headers, cookies }) => {
     if (__DEVELOPMENT__) {
@@ -79,6 +77,9 @@ export default (config) => {
       // hot module replacement is enabled in the development env
       tools.refresh();
     }
+    const history = createMemoryHistory();
+    const store = createStore(middleware, history, null, cookies, headers);
+
     const assets = tools.assets();
     const routes = getRoutes(store);
     return renderer({ history, routes, store, assets, location, headers, cookies, config });
