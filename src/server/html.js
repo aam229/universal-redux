@@ -6,17 +6,18 @@ import Body from './body';
 
 export default (config, assets, store, headers, component) => {
   const root = config.html.root || config.htmlShell;
+  const clientOnly = config.server.disabled === true;
   if (root) {
     const Html = require(path.resolve(root)).default;
     return '<!doctype html>\n' + ReactDOM.renderToString(
-      <Html assets={assets} store={store} component={component} headers={headers} />
+      <Html assets={assets} store={store} component={component} headers={headers} clientOnly={clientOnly}/>
     );
   }
 
   return '<!doctype html>\n' + ReactDOM.renderToString(
     <html lang="en-us">
       <Head additions={config.html.head} assets={assets} store={store} headers={headers} />
-      <Body assets={assets} store={store} headers={headers} component={component} />
+      <Body assets={assets} store={store} headers={headers} component={component} clientOnly={clientOnly}/>
     </html>
   );
 };

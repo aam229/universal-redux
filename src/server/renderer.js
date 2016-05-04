@@ -40,6 +40,9 @@ function renderRootComponent({ config, assets, store, headers, root }) {
 }
 
 function renderer({ history, routes, store, assets, location, headers, cookies, config }) {
+  if(config.server && config.server.disabled === true) {
+    return Promise.resolve(renderRootComponent({ config, assets, store, headers }));
+  }
   return new Promise((resolve, reject) => {
     match({ history, routes, location }, (error, redirectLocation, renderProps) => {
       if (error) {

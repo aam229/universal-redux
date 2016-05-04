@@ -26,7 +26,6 @@ export default function create(staticMiddleware, history, data, cookies, headers
     cookies,
     headers
   }, createStoreHook);
-
   history = syncHistoryWithStore(history, store);
   return { store, history };
 }

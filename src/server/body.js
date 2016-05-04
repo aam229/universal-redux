@@ -9,6 +9,7 @@ export default class Body extends Component {
     component: PropTypes.node,
     headers: PropTypes.object,
     store: PropTypes.object,
+    clientOnly: PropTypes.bool
   };
 
   render() {
@@ -17,7 +18,10 @@ export default class Body extends Component {
 
     return (
       <body>
-        <div id="content" dangerouslySetInnerHTML={{ __html: content }}/>
+        { this.props.clientOnly  ?
+          <div id="content" data-client-only dangerouslySetInnerHTML={{ __html: content }}/> :
+          <div id="content" dangerouslySetInnerHTML={{ __html: content }}/>
+        }
         <script dangerouslySetInnerHTML={{ __html: `window.__data=${serialize(store.getState())};` }} charSet="UTF-8"/>
         { Object.keys(assets.javascript).map((jsAsset, key) =>
           <script src={assets.javascript[jsAsset]} key={key} charSet="UTF-8"/>
