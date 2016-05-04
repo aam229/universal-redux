@@ -12,6 +12,7 @@ import middleware from 'middleware';
 import { hooks, execute } from './hooks';
 
 const dest = document.getElementById('content');
+const clientOnly = !!dest.attributes['data-client-only'];
 
 const { store, history } = createStore(middleware, browserHistory, window.__data);
 const routes = getRoutes(store);
@@ -36,12 +37,12 @@ new Promise((resolve, reject) => {
       else resolve({ renderProps });
     })
   })
-  .then(({renderProps}) => execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientComponents: [], includeClientComponents: false}, generateRootComponent))
+  .then(({renderProps}) => execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: false}, generateRootComponent))
   .then(({ root, clientComponents, renderProps }) => {
     ReactDOM.render(root, dest);
 
-    if (process.env.NODE_ENV !== 'production' && !dest.attributes['data-client-only']) {
-      window.React = React; // enable debugger 
+    if (process.env.NODE_ENV !== 'production' && !clientOnly) {
+      window.React = React; // enable debugger
       if (!dest || !dest.firstChild || !dest.firstChild.attributes || !dest.firstChild.attributes['data-react-checksum']) {
         console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
       }
@@ -51,7 +52,7 @@ new Promise((resolve, reject) => {
       return;
     }
     // Rerender the root component with the dev component (redux sidebar)
-    return execute(hooks.CREATE_ROOT_COMPONENT, {store, routes, history, renderProps, clientComponents: [], includeClientComponents: true}, generateRootComponent)
+    return execute(hooks.CREATE_ROOT_COMPONENT, {store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: true}, generateRootComponent)
       .then(({ root }) => {
         ReactDOM.render(root, dest);
       });
