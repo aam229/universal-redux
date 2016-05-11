@@ -80,7 +80,7 @@ export default (config) => {
       // hot module replacement is enabled in the development env
       tools.refresh();
     }
-    const { store, history } = createStore(middleware, createMemoryHistory([location]), null, cookies, headers);
+    const { store, history } = createStore(middleware, createMemoryHistory([location]), {}, cookies, headers);
 
     const assets = tools.assets();
     const routes = getRoutes(store);
