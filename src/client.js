@@ -34,6 +34,7 @@ new Promise((resolve, reject) => {
     const location = window.location.pathname + window.location.search + window.location.hash;
     match({ routes, store, history, location }, (error, redirectLocation, renderProps) => {
       if(error) reject(error);
+      else if(redirectLocation) window.location.href = redirectLocation.pathname + redirectLocation.search + redirectLocation.hash;
       else resolve({ renderProps });
     })
   })
