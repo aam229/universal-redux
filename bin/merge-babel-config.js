@@ -22,6 +22,9 @@ module.exports = (userBabelConfig, verbose) => {
         {
           transform: require.resolve('react-transform-catch-errors'),
           imports: [ require.resolve(path.join(process.cwd(), 'node_modules', 'react')), require.resolve('redbox-react') ]
+        },
+        {
+          transform: require.resolve('react-transform-log-render')
         }
       ]
     }
