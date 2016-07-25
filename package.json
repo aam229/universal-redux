@@ -79,7 +79,7 @@
     "redux-devtools-dock-monitor": "1.0.1",
     "redux-devtools-log-monitor": "1.0.2",
     "redux-logger": "2.3.1",
-    "sass-loader": "3.1.2",
+    "sass-loader": "^4.0.0",
     "serialize-javascript": "1.1.2",
     "serve-favicon": "2.3.0",
     "style-loader": "0.13.0",
