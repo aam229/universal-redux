@@ -88,6 +88,7 @@ function parsePlugins(universalReduxConfig, sourceDir, isProduction, isServer){
 }
 
 module.exports = (userConfig) => {
+  const isServer = typeof(__SERVER__) !== 'undefined' && __SERVER__;
   // derive root and sourceDir, alowing for absolute, relative, or not provided
   const root = userConfig.root ? userConfig.root[0] === '/' ? userConfig.root : path.resolve(process.cwd(), userConfig.root) : path.resolve(process.cwd());
   const sourceDir = userConfig.sourceDir ? userConfig.sourceDir[0] === '/' ? userConfig.sourceDir : path.resolve(root, userConfig.sourceDir) : path.resolve(root, './src');
@@ -158,7 +159,6 @@ module.exports = (userConfig) => {
   }
 
   // Try to resolve the configured plugins
-  const isServer = typeof(__SERVER__) !== 'undefined' && __SERVER__;
   combinedWebpackConfig.entry.main.unshift.apply(combinedWebpackConfig.entry.main, parsePlugins(universalReduxConfig, sourceDir, isProduction, isServer ));
 
   // add project level vendor libs
