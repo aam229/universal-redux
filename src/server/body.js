@@ -17,7 +17,7 @@ export default class Body extends Component {
     const content = component ? ReactDOM.renderToString(component) : '';
 
     return (
-      <body>
+      <body style={{margin: 0}}>
         { this.props.clientOnly  ?
           <div id="content" data-client-only dangerouslySetInnerHTML={{ __html: content }}/> :
           <div id="content" dangerouslySetInnerHTML={{ __html: content }}/>
