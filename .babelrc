@@ -7,7 +7,8 @@
   "plugins": [
     [ "transform-runtime" ],
     [ "typecheck" ],
-    [ "transform-decorators-legacy" ]
+    [ "transform-decorators-legacy" ],
+    ["transform-async-to-generator"]
   ],
   "env": {
     "development": {
