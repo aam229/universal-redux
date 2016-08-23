@@ -93,7 +93,7 @@ module.exports = {
     output: {
       filename: '[name]-[chunkhash].js',
       chunkFilename: '[name]-[chunkhash].js',
-      publicPath: 'http://' + host + ':' + port + '/dist/'
+      publicPath: '/dist/'
     },
     module: {
       loaders: [
