@@ -31,26 +31,63 @@ module.exports = {
       ]
     },
     module: {
-      loaders: [
+      rules: [
         // { test: /\.jsx?$/, exclude: /node_modules/, loaders: jsLoaders }, // now prepended in merge-configs and merge-babel-config
-        { test: /\.json$/, loader: 'json-loader' },
-        { test: /\.woff(\?v=\d+\.\d+\.\d+)?$/, loader: 'url?limit=10000&mimetype=application/font-woff' },
-        { test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/, loader: 'url?limit=10000&mimetype=application/font-woff' },
-        { test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/, loader: 'url?limit=10000&mimetype=application/octet-stream' },
-        { test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, loader: 'file' },
-        { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: 'url?limit=10000&mimetype=image/svg+xml' }
+        {
+          test: /\.json$/,
+          use: ['json-loader']
+        },
+        {
+          test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+          use: [{
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              mimetype: 'application/font-woff'
+            }
+          }]
+        },
+        {
+          test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+          use: [{
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              mimetype: 'application/font-woff'
+            }
+          }]
+        },
+        {
+          test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+          use: [{
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              mimetype: 'application/octet-stream'
+            }
+          }]
+        },
+        {
+          test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+          use: ['file-loader']
+        },
+        {
+          test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+          use: [{
+            loader: 'url-loader',
+            options: {
+              limit: 10000,
+              mimetype: 'image/svg+xml'
+            }
+          }]
+        }
       ]
     },
-    progress: true,
     resolve: {
-      modulesDirectories: [
-        'src',
-        'node_modules'
-      ],
-      extensions: [ '', '.json', '.js', '.jsx' ]
+      extensions: [ '.json', '.js', '.jsx' ]
     },
     resolveLoader: {
-      modulesDirectories: [
+      modules: [
         'src',
         'node_modules'
       ]
@@ -69,10 +106,11 @@ module.exports = {
       publicPath: 'http://' + host + ':' + port + '/dist/'
     },
     module: {
-      loaders: [
-        { test: /\.css$/, loader: 'style!css' },
-        { test: /\.less$/, loader: 'style!css?modules&importLoaders=2&sourceMap&localIdentName=[local]___[hash:base64:5]!autoprefixer?browsers=last 2 version!less?outputStyle=expanded&sourceMap' },
-        { test: /\.scss$/, loader: 'style!css?modules&importLoaders=2&sourceMap&localIdentName=[local]___[hash:base64:5]!autoprefixer?browsers=last 2 version!sass?outputStyle=expanded&sourceMap' }
+      rules: [
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader']
+        }
       ]
     },
     plugins: [
@@ -96,10 +134,11 @@ module.exports = {
       publicPath: '/dist/'
     },
     module: {
-      loaders: [
-        { test: /\.css$/, loader: ExtractTextPlugin.extract('style', 'css') },
-        { test: /\.less$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!less?outputStyle=expanded&sourceMap=true&sourceMapContents=true') },
-        { test: /\.scss$/, loader: ExtractTextPlugin.extract('style', 'css?modules&importLoaders=2&sourceMap!autoprefixer?browsers=last 2 version!sass?outputStyle=expanded&sourceMap=true&sourceMapContents=true') }
+      rules: [
+        {
+          test: /\.css$/,
+          loader: ExtractTextPlugin.extract('css-loader')
+        }
       ]
     },
     plugins: [
@@ -120,7 +159,6 @@ module.exports = {
 
       // optimizations
       new webpack.optimize.DedupePlugin(),
-      new webpack.optimize.OccurenceOrderPlugin(),
       new webpack.optimize.UglifyJsPlugin({
         compress: {
           warnings: false

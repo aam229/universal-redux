@@ -21,9 +21,6 @@ function validateConfig(config) {
 }
 
 export default (config) => {
-  // since typically the dev server is logging this out too
-  config.verbose = false;
-
   // add user defined globals for serverside access
   each(config.globals, (value, key) => { global[key] = JSON.stringify(value); });
 

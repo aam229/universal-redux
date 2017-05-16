@@ -4,7 +4,6 @@ const server = require('../lib/server.js').default;
 const userConfig = require('./user-config');
 
 // since typically the dev server is logging this out too
-userConfig.verbose = false;
 
 const config = require('../lib/configure').default(require('./merge-configs')(userConfig));
 const pretty = new PrettyError();

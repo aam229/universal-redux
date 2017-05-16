@@ -96,21 +96,24 @@ module.exports = (userConfig) => {
   // merge with base config
   const universalReduxConfig = lodash.merge(require('../config/universal-redux.config.js')(root, sourceDir), userConfig);
 
+  console.log(universalReduxConfig)
   // merge with base webpack config
   const baseConfig = isProduction ? baseProdConfig : baseDevConfig;
   const combinedWebpackConfig = mergeWebpack(baseConfig, universalReduxConfig.webpack.config);
-  combinedWebpackConfig.context = root;
-  combinedWebpackConfig.resolve.root = sourceDir;
 
-  combinedWebpackConfig.resolve.fallback = [path.join(__dirname, '../node_modules')];
-  combinedWebpackConfig.resolveLoader.root = path.join(__dirname, '../node_modules');
+  combinedWebpackConfig.context = root;
+  combinedWebpackConfig.resolve.modules = [sourceDir, 'node_modules'];
 
   // derive webpack output destination from staticPath
   combinedWebpackConfig.output.path = universalReduxConfig.server.staticPath + '/dist';
 
   // add babel for js transpiling
   const babelConfig = mergeBabel(universalReduxConfig.babelConfig, universalReduxConfig.verbose);
-  combinedWebpackConfig.module.loaders.unshift({ test: /\.jsx?$/, exclude: /node_modules/, loaders: babelConfig });
+  combinedWebpackConfig.module.rules.unshift({
+    test: /\.jsx?$/,
+    exclude: /node_modules/,
+    use: babelConfig
+  });
 
   // gather tools config
   const userToolsConfig = require(path.resolve(universalReduxConfig.toolsConfigPath));
@@ -123,17 +126,16 @@ module.exports = (userConfig) => {
   const WebpackIsomorphicToolsPlugin = require('webpack-isomorphic-tools/plugin');
   const toolsPlugin = new WebpackIsomorphicToolsPlugin(combinedToolsConfig);
 
-  combinedWebpackConfig.module.loaders.push({ test: toolsPlugin.regular_expression('images'), loader: 'url-loader?limit=10240' });
-  combinedWebpackConfig.plugins.push(isProduction ? toolsPlugin : toolsPlugin.development());
-
-  // turn on linting per webpack build, unless directed not to
-  if (universalReduxConfig.lint.enabled !== false && !isProduction) {
-    combinedWebpackConfig.module.loaders[0].loaders.push('eslint-loader');
-    const lintConfigPath = universalReduxConfig.lint.config || path.resolve(__dirname, '../.eslintrc');
-    combinedWebpackConfig.eslint = {
-      configFile: lintConfigPath
-    };
-  }
+  combinedWebpackConfig.module.rules.push({
+    test: toolsPlugin.regular_expression('images'),
+    use: [{
+      loader: 'url-loader',
+      options: {
+        limit: 10240
+      }
+    }]
+  });
+  combinedWebpackConfig.plugins.push(toolsPlugin);
 
   // turn on desktop notifications if user elects to
   if (universalReduxConfig.notifications === true && !isProduction) {
