@@ -109,11 +109,16 @@ module.exports = {
       rules: [
         {
           test: /\.css$/,
-          use: ['style-loader', 'css-loader']
+          use: ExtractTextPlugin.extract({
+            fallback: "style-loader",
+            use: "css-loader"
+          })
         }
       ]
     },
     plugins: [
+      new ExtractTextPlugin({filename : '[name]-[chunkhash].css', allChunks: true }),
+
       // hot reload
       new webpack.HotModuleReplacementPlugin(),
       new webpack.IgnorePlugin(/webpack-assets\.json$/),
@@ -137,13 +142,13 @@ module.exports = {
       rules: [
         {
           test: /\.css$/,
-          loader: ExtractTextPlugin.extract('css-loader')
+          loader: ExtractTextPlugin.extract({use : 'css-loader'})
         }
       ]
     },
     plugins: [
       // css files from the extract-text-plugin loader
-      new ExtractTextPlugin('[name]-[chunkhash].css', { allChunks: true }),
+      new ExtractTextPlugin({filename : '[name]-[chunkhash].css', allChunks: true }),
       new webpack.DefinePlugin({
         __CLIENT__: true,
         __SERVER__: false
