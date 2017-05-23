@@ -2,22 +2,18 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { RouterContext } from 'react-router';
 
-import path from 'path';
 import { match } from 'react-router';
 import PrettyError from 'pretty-error';
 import createMemoryHistory from 'react-router/lib/createMemoryHistory';
 
+import getRoutes from 'routes';
+import middleware from 'middleware';
+
 import createStore from '../shared/create';
 import html from './html';
-import getTools from './tools';
 import { hooks, execute } from '../hooks';
 
 const pretty = new PrettyError();
-
-global.__CLIENT__ = false;
-global.__SERVER__ = true;
-global.__DISABLE_SSR__ = false;  // <----- DISABLES SERVER SIDE RENDERING FOR ERROR DEBUGGING
-global.__DEVELOPMENT__ = process.env.NODE_ENV !== 'production';
 
 function createRootComponent({ store, renderProps, additionalComponents }) {
   const root = (
@@ -40,7 +36,7 @@ function renderRootComponent({ config, assets, store, headers, root }) {
 }
 
 function renderer({ history, routes, store, assets, location, headers, cookies, config }) {
-  if(config.server && config.server.disabled === true) {
+  if (config.server && config.server.disabled === true) {
     return Promise.resolve(renderRootComponent({ config, assets, store, headers }));
   }
   return new Promise((resolve, reject) => {
@@ -68,22 +64,9 @@ function renderer({ history, routes, store, assets, location, headers, cookies, 
   });
 }
 
-export default (config) => {
-  const tools = getTools(config);
-  const getRoutes = require(path.resolve(config.routes)).default;
+export default (config, assets) => ({ location, headers, cookies }) => {
+  const { store, history } = createStore(middleware, createMemoryHistory([ location ]), {}, cookies, headers);
 
-  const middleware = config.redux.middleware ? require(path.resolve(config.redux.middleware)).default : [];
-
-  return ({ location, headers, cookies }) => {
-    if (__DEVELOPMENT__) {
-      // Do not cache webpack stats: the script file would change since
-      // hot module replacement is enabled in the development env
-      tools.refresh();
-    }
-    const { store, history } = createStore(middleware, createMemoryHistory([location]), {}, cookies, headers);
-
-    const assets = tools.assets();
-    const routes = getRoutes(store);
-    return renderer({ history, routes, store, assets, location, headers, cookies, config });
-  };
+  const routes = getRoutes(store);
+  return renderer({ history, routes, store, assets, location, headers, cookies, config });
 };

@@ -45,7 +45,7 @@ Generally kept in `src/routes.js`, this is where you define what routes map to w
 
 #### Webpack configuration
 
-Any items specified in the `webpack.config` of your configuration will be merged with the [default Webpack configuration](https://github.com/bdefore/universal-redux/blob/master/config/webpack.config.js). You may also turn on `verbose` mode to see the exact Webpack configuration you are running.
+Any items specified in the `webpack.config` of your configuration will be merged with the [default Webpack configuration](https://github.com/bdefore/universal-redux/blob/master/config/webpack.commons.config.js). You may also turn on `verbose` mode to see the exact Webpack configuration you are running.
 
 #### Express middleware
 
@@ -74,7 +74,7 @@ You can activate your own Redux middleware by specifying the `middleware` proper
 
 The `html.head` configuration allows you to define your own `<head>` that will be merged with the necessary items for serverside rendering. You can see an example of this in the JWT project [here](https://github.com/bdefore/universal-redux-jwt/blob/master/src/containers/Head/Head.js).
 
-Alternatively, you can specify `html.root` in your configuration and this will be used instead of the default one. If you do take that approach, you'll want to be sure to include the items from `src/server/head.js` and `src/server/body.js`.
+Alternatively, you can specify `html.root` in your configuration and this will be used instead of the default one. If you do take that approach, you'll want to be sure to include the items from `src/server/head.js` and `src/server/body.jsx`.
 
 #### Webpack Isomorphic Tools configuration
 

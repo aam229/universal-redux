@@ -16,7 +16,7 @@ function createStoreHook({ createStore, reducer, data }) {
 }
 
 export default function create(staticMiddleware, history, data, cookies, headers) {
-  const middleware = [...staticMiddleware, routerMiddleware(history)];
+  const middleware = [ ...staticMiddleware, routerMiddleware(history) ];
   const reducers = { routing: routerReducer };
 
   const store = execute(hooks.CREATE_REDUX_STORE, {
@@ -26,6 +26,5 @@ export default function create(staticMiddleware, history, data, cookies, headers
     cookies,
     headers
   }, createStoreHook);
-  history = syncHistoryWithStore(history, store);
-  return { store, history };
+  return { store, history: syncHistoryWithStore(history, store) };
 }

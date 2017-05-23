@@ -29,13 +29,13 @@ export const positions = {
 const executors = new Map();
 
 const hookValues = Array.concat(
-  Object.keys(hooks).map((key) => hooks[key])
+  Object.keys(hooks).map(key => hooks[key])
 );
 const environmentValues = Array.concat(
-  Object.keys(environments).map((key) => environments[key])
+  Object.keys(environments).map(key => environments[key])
 );
 const positionValues = Array.concat(
-  Object.keys(positions).map((key) => positions[key])
+  Object.keys(positions).map(key => positions[key])
 );
 
 
@@ -45,12 +45,12 @@ const positionValues = Array.concat(
 export function register(hook, executor, { environments: hookEnvs, position: hookPos } = {}) {
   let hookPosition = hookPos;
   let hookEnvironments = hookEnvs;
-  
+
   if (hookValues.indexOf(hook) === -1) {
     console.warn(`Unknown hook '${hook}'`);
     return;
   }
-  if (typeof(executor) !== 'function') {
+  if (typeof (executor) !== 'function') {
     console.warn('The hook executor must be a function');
     return;
   }
@@ -64,6 +64,14 @@ export function register(hook, executor, { environments: hookEnvs, position: hoo
     hookEnvironments = [ hookEnvironments ];
   }
   if (hookEnvironments) {
+    if (hookEnvironments.indexOf(environments.CLIENT) === -1 && hookEnvironments.indexOf(environments.SERVER) === -1) {
+      console.warn('The hook environment should specify if it\'s a server or client hook (or both)');
+      return;
+    }
+    if (hookEnvironments.indexOf(environments.PRODUCTION) === -1 && hookEnvironments.indexOf(environments.DEVELOPMENT) === -1) {
+      console.warn('The hook environment should specify if it\'s a production or development hook (or both)');
+      return;
+    }
     for (let i = 0; i < hookEnvironments.length; i++) {
       if (environmentValues.indexOf(hookEnvironments[i]) !== -1) {
         continue;
@@ -71,20 +79,13 @@ export function register(hook, executor, { environments: hookEnvs, position: hoo
       console.warn(`Unknown hook environment '${hookEnvironments[i]}'`);
       return;
     }
-
     // Do not register the hook if it does not match the environment
-    if (typeof(__SERVER__) !== 'undefined' &&
-        typeof(__CLIENT__) !== 'undefined' &&
-        typeof(__DEVELOPMENT__) !== 'undefined') {
-      if (__SERVER__ && hookEnvironments.indexOf(environments.CLIENT) !== -1 && hookEnvironments.indexOf(environments.SERVER) === -1 ||
-          __CLIENT__ && hookEnvironments.indexOf(environments.SERVER) !== -1 && hookEnvironments.indexOf(environments.CLIENT) === -1 ||
-          __DEVELOPMENT__ && hookEnvironments.indexOf(environments.PRODUCTION) !== -1 && hookEnvironments.indexOf(environments.DEVELOPMENT) === -1 ||
-          !__DEVELOPMENT__ && hookEnvironments.indexOf(environments.DEVELOPMENT) !== -1 && hookEnvironments.indexOf(environments.PRODUCTION) === -1) {
-        return;
-      }
-    } else {
+    if (hookEnvironments.indexOf(process.env.JS_ENV) === -1 || hookEnvironments.indexOf(process.env.NODE_ENV) === -1) {
       return;
     }
+  } else {
+    console.warn('The hook environment must not be empty');
+    return;
   }
 
   const fullHook = hookPosition + hook;

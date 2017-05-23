@@ -2,19 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import { browserHistory, Router, match } from 'react-router';
-
-import createStore from './shared/create';
-
-// dependencies of external source. these resolve via webpack aliases
-// as assigned in merge-configs.js
 import getRoutes from 'routes';
 import middleware from 'middleware';
+
+import createStore from './shared/create';
 import { hooks, execute } from './hooks';
 
 const dest = document.getElementById('content');
 const clientOnly = !!dest.attributes['data-client-only'];
 
-const { store, history } = createStore(middleware, browserHistory, window.__data);
+const { store, history } = createStore(middleware, browserHistory, window.ReduxStoreData);
 const routes = getRoutes(store);
 
 function generateRootComponent({ clientComponents, includeClientComponents, render, renderProps }) {
@@ -31,14 +28,14 @@ function generateRootComponent({ clientComponents, includeClientComponents, rend
 
 // There is probably no need to be asynchronous here
 new Promise((resolve, reject) => {
-    const location = window.location.pathname + window.location.search + window.location.hash;
-    match({ routes, store, history, location }, (error, redirectLocation, renderProps) => {
-      if(error) reject(error);
-      else if(redirectLocation) window.location.href = redirectLocation.pathname + redirectLocation.search + redirectLocation.hash;
-      else resolve({ renderProps });
-    })
-  })
-  .then(({renderProps}) => execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: false}, generateRootComponent))
+  const location = window.location.pathname + window.location.search + window.location.hash;
+  match({ routes, store, history, location }, (error, redirectLocation, renderProps) => {
+    if (error) reject(error);
+    else if (redirectLocation) window.location.href = redirectLocation.pathname + redirectLocation.search + redirectLocation.hash;
+    else resolve({ renderProps });
+  });
+})
+  .then(({ renderProps }) => execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: false }, generateRootComponent))
   .then(({ root, clientComponents, renderProps }) => {
     ReactDOM.render(root, dest);
 
@@ -50,12 +47,12 @@ new Promise((resolve, reject) => {
     }
 
     if (clientComponents.length === 0) {
-      return;
+      return Promise.resolve();
     }
     // Rerender the root component with the dev component (redux sidebar)
-    return execute(hooks.CREATE_ROOT_COMPONENT, {store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: true}, generateRootComponent)
-      .then(({ root }) => {
-        ReactDOM.render(root, dest);
+    return execute(hooks.CREATE_ROOT_COMPONENT, { store, routes, history, renderProps, clientOnly, clientComponents: [], includeClientComponents: true }, generateRootComponent)
+      .then(({ root: updatedRoot }) => {
+        ReactDOM.render(updatedRoot, dest);
       });
   })
   .catch((err) => {

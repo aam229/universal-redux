@@ -8,7 +8,8 @@
     [ "transform-runtime" ],
     [ "typecheck" ],
     [ "transform-decorators-legacy" ],
-    ["transform-async-to-generator"]
+    [ "transform-async-to-generator" ],
+    [ "transform-class-properties" ]
   ],
   "env": {
     "development": {
