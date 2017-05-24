@@ -26,7 +26,7 @@
   "main": "lib/index.js",
   "scripts": {
     "postinstall": "npm run compile",
-    "compile": "babel --presets es2015,stage-0,react --plugins transform-runtime src/ --out-dir lib/",
+    "compile": "babel src/ --out-dir lib/",
     "dev": "./bin/local-dev.sh",
     "lint": "eslint --ext=js --ext=jsx -c .eslintrc src bin config plugins",
     "fix-lint": "eslint --ext=js --ext=jsx --fix -c .eslintrc src bin config plugins",

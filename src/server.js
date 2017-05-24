@@ -1,9 +1,8 @@
 import path from 'path';
 import config from 'universal-redux-config';
-import { hooks, execute } from './hooks';
+import { hooks, execute } from './shared/hooks';
 import createRenderer from './server/renderer';
-import FileWatcher from './config/ConfigWatcher';
-
+import FileWatcher from './config/WebpackAssetWatcher';
 
 new FileWatcher(
     path.resolve(config.server.staticPath),

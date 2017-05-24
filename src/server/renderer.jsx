@@ -11,7 +11,7 @@ import middleware from 'middleware';
 
 import createStore from '../shared/create';
 import html from './html';
-import { hooks, execute } from '../hooks';
+import { hooks, execute } from '../shared/hooks';
 
 const pretty = new PrettyError();
 

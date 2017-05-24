@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const appConfig = require('./app.config');
+const babelConfig = require('./babel.config');
 
 module.exports = {
   context: appConfig.root,
@@ -9,7 +10,7 @@ module.exports = {
     path: appConfig.webpackassets
   },
   resolve: {
-    modules: [ appConfig.source, 'node_modules' ],
+    modules: [ 'node_modules' ],
     extensions: [ '.json', '.js', '.jsx' ],
     alias: {
       middleware: appConfig.reduxMiddlewares,
@@ -21,6 +22,14 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: [ {
+          loader: 'babel-loader',
+          options: babelConfig
+        } ]
+      },
       {
         test: /\.json$/,
         use: [ 'json-loader' ]

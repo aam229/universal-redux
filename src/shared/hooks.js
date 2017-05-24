@@ -44,7 +44,7 @@ const positionValues = Array.concat(
 // find issues with the code.
 export function register(hook, executor, { environments: hookEnvs, position: hookPos } = {}) {
   let hookPosition = hookPos;
-  let hookEnvironments = hookEnvs;
+  let hookEnvironments = hookEnvs || [];
 
   if (hookValues.indexOf(hook) === -1) {
     console.warn(`Unknown hook '${hook}'`);
@@ -63,28 +63,21 @@ export function register(hook, executor, { environments: hookEnvs, position: hoo
   if (hookEnvironments && !(hookEnvironments instanceof Array)) {
     hookEnvironments = [ hookEnvironments ];
   }
-  if (hookEnvironments) {
-    if (hookEnvironments.indexOf(environments.CLIENT) === -1 && hookEnvironments.indexOf(environments.SERVER) === -1) {
-      console.warn('The hook environment should specify if it\'s a server or client hook (or both)');
-      return;
+  if (hookEnvironments.indexOf(environments.CLIENT) === -1 && hookEnvironments.indexOf(environments.SERVER) === -1) {
+    hookEnvironments.push(environments.CLIENT, environments.SERVER);
+  }
+  if (hookEnvironments.indexOf(environments.PRODUCTION) === -1 && hookEnvironments.indexOf(environments.DEVELOPMENT) === -1) {
+    hookEnvironments.push(environments.PRODUCTION, environments.DEVELOPMENT);
+  }
+  for (let i = 0; i < hookEnvironments.length; i++) {
+    if (environmentValues.indexOf(hookEnvironments[i]) !== -1) {
+      continue;
     }
-    if (hookEnvironments.indexOf(environments.PRODUCTION) === -1 && hookEnvironments.indexOf(environments.DEVELOPMENT) === -1) {
-      console.warn('The hook environment should specify if it\'s a production or development hook (or both)');
-      return;
-    }
-    for (let i = 0; i < hookEnvironments.length; i++) {
-      if (environmentValues.indexOf(hookEnvironments[i]) !== -1) {
-        continue;
-      }
-      console.warn(`Unknown hook environment '${hookEnvironments[i]}'`);
-      return;
-    }
-    // Do not register the hook if it does not match the environment
-    if (hookEnvironments.indexOf(process.env.JS_ENV) === -1 || hookEnvironments.indexOf(process.env.NODE_ENV) === -1) {
-      return;
-    }
-  } else {
-    console.warn('The hook environment must not be empty');
+    console.warn(`Unknown hook environment '${hookEnvironments[i]}'`);
+    return;
+  }
+  // Do not register the hook if it does not match the environment
+  if (hookEnvironments.indexOf(process.env.JS_ENV) === -1 || hookEnvironments.indexOf(process.env.NODE_ENV) === -1) {
     return;
   }
 

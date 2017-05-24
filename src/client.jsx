@@ -6,7 +6,7 @@ import getRoutes from 'routes';
 import middleware from 'middleware';
 
 import createStore from './shared/create';
-import { hooks, execute } from './hooks';
+import { hooks, execute } from './shared/hooks';
 
 const dest = document.getElementById('content');
 const clientOnly = !!dest.attributes['data-client-only'];

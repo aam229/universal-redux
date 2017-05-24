@@ -22,18 +22,16 @@ function getModulePackage(modulePath) {
   const packages = modulePath.split(new RegExp(`\\${path.sep}node_modules\\${path.sep}`));
   if (packages.length > 1) {
     const lastSegment = packages.pop();
-    let lastPackageName = '';
     if (lastSegment[0] === ('@')) {
       // package is a scoped package
       const offset = lastSegment.indexOf(path.sep) + 1;
-      lastPackageName = lastSegment.slice(0, offset + lastSegment.slice(offset).indexOf(path.sep));
+      packages.push(lastSegment.slice(0, offset + lastSegment.slice(offset).indexOf(path.sep)));
     } else {
-      lastPackageName = lastSegment.slice(0, lastSegment.indexOf(path.sep));
+      packages.push(lastSegment.slice(0, lastSegment.indexOf(path.sep)));
     }
-    packages.push(lastPackageName);
   }
   packages.shift();
-  return packages.shift();
+  return packages.length > 0 ? packages.shift() : null;
 }
 
 console.log('\nAnalyzing dependencies...');
@@ -52,7 +50,7 @@ compiler.run((err, stats) => {
     .forEach(tree => printDependencySizeTree(tree, true, 0));
 
   const ignoreModules = new Set(appConfig.dll.ignore);
-  const modules = jsonStats.modules.map(module => getModulePath(module.identifier))
+  const moduleFiles = jsonStats.modules.map(module => getModulePath(module.identifier))
     .filter(module => !module.startsWith('ignored'))
     .filter((module) => {
       const packageName = getModulePackage(module);
@@ -61,5 +59,5 @@ compiler.run((err, stats) => {
     .reduce((s, module) => s.add(module), new Set());
 
   const outputPath = path.resolve(appConfig.dll.root, appConfig.dll[process.env.JS_ENV]);
-  fs.writeFileSync(outputPath, JSON.stringify(Array.from(modules), null, 2), 'utf8');
+  fs.writeFileSync(outputPath, JSON.stringify(Array.from(moduleFiles), null, 2), 'utf8');
 });

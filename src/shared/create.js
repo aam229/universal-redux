@@ -1,7 +1,7 @@
 import { syncHistoryWithStore, routerReducer, routerMiddleware } from 'react-router-redux';
 import { applyMiddleware, createStore as reduxCreateStore, combineReducers } from 'redux';
 
-import { hooks, execute } from '../hooks';
+import { hooks, execute } from './hooks';
 
 function createMiddlewareHook({ middleware }) {
   return applyMiddleware(...middleware);

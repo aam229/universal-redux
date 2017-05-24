@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const appConfig = require('./app.config');
-const hooks = require('../lib/hooks');
+const hooks = require('../lib/shared/hooks');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isServer = process.env.JS_ENV === 'server';

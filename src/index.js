@@ -1,1 +1,1 @@
-export { hooks, register as registerHook } from './hooks';
+export * from './shared/hooks';
