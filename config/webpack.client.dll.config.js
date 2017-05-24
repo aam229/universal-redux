@@ -13,7 +13,6 @@ const dllModules = JSON.parse(fs.readFileSync(path.resolve(appConfig.dll.root, a
 
 webpackConfig.entry.dll = dllModules;
 webpackConfig.output.filename = 'client-dll-[chunkhash].js';
-webpackConfig.devtool = 'source-map';
 webpackConfig.output.library = 'dll_lib';
 webpackConfig.output.libraryTarget = 'window';
 
@@ -33,11 +32,17 @@ webpackConfig.plugins.push(new ExtractTextPlugin({
   filename: 'client-dll-[chunkhash].css',
   allChunks: true
 }));
-webpackConfig.plugins.push(new webpack.optimize.UglifyJsPlugin({
-  compress: {
-    warnings: false
-  }
-}));
+
+if (process.env.NODE_ENV === 'development') {
+  webpackConfig.devtool = 'cheap-module-eval-source-map';
+} else {
+  webpackConfig.devtool = 'source-map';
+  webpackConfig.plugins.push(new webpack.optimize.UglifyJsPlugin({
+    compress: {
+      warnings: false
+    }
+  }));
+}
 
 module.exports = webpackConfig;
 if (appConfig.verbose !== false) {

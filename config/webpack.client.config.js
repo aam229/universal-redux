@@ -13,8 +13,6 @@ webpackConfig.entry.main = webpackUniversalPluginsConfig.concat([
   path.resolve(__dirname, '..', 'lib/client.js') ]
 );
 webpackConfig.output.filename = 'client-[chunkhash].js';
-webpackConfig.devtool = 'cheap-module-eval-source-map';
-
 webpackConfig.module.rules.push({
   test: /\.css$/,
   loader: ExtractTextPlugin.extract('css-loader')
@@ -31,6 +29,12 @@ webpackConfig.plugins.push(new ExtractTextPlugin({
   filename: 'client-[chunkhash].css',
   allChunks: true
 }));
+
+if (process.env.NODE_ENV === 'development') {
+  webpackConfig.devtool = 'cheap-module-eval-source-map';
+} else {
+  webpackConfig.devtool = 'source-map';
+}
 
 module.exports = webpackConfig;
 
